@@ -12,5 +12,6 @@ export HYDRA_FULL_ERROR=1
 export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
 export MASTER_PORT=$(shuf -i 20000-65000 -n 1)  # or any free port
 
+ulimit -n 65535
 
 python examples/geo3k_vlm_multi_turn/run_geo3k_vlm_multi_turn_grpo_npu.py

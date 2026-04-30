@@ -235,12 +235,6 @@ def execute_train_npu(
             "env_vars": {
                 "CUDA_DEVICE_MAX_CONNECTIONS": "1",
                 "RAY_EXPERIMENTAL_NOSET_ASCEND_RT_VISIBLE_DEVICES": "1",
-                # Replace with actual Ascend toolkit paths
-                "ASCEND_TOOLKIT_HOME": "/path/to/ascend/ascend-toolkit/latest/",
-                "ASCEND_OPP_PATH": "/path/to/ascend/ascend-toolkit/latest/opp/",
-                "ASCEND_AICPU_PATH": "/path/to/ascend/ascend-toolkit/latest/",
-                "ASCEND_HOME_PATH": "/path/to/ascend/ascend-toolkit/latest/",
-                "set_env_path": "/path/to/ascend/nnal/atb/set_env.sh",
                 "HYDRA_FULL_ERROR": "1",
                 "HCCL_HOST_SOCKET_PORT_RANGE": "60000-60050",
                 "HCCL_NPU_SOCKET_PORT_RANGE": "61000-61050",
@@ -281,6 +275,7 @@ def execute_train_npu(
         exec_command(
             f"export no_proxy=127.0.0.1 && export PYTHONBUFFERED=16 && "
             f"{cmd_megatron_model_source}"
+            f"sleep 60 && "
             f'ray job submit --address="http://127.0.0.1:8265" '
             f"--runtime-env-json='{runtime_env_json}' "
             f"-- python3 {train_script} "
