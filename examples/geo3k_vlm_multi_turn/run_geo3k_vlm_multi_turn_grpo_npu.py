@@ -67,14 +67,10 @@ def execute():
         "--weight-decay 0.1 "
         "--adam-beta1 0.9 "
         "--adam-beta2 0.98 "
-
-        "--optimizer-cpu-offload "
-        "--overlap-cpu-optimizer-d2h-h2d "
-        "--use-precision-aware-optimizer "
     )
 
     sglang_args = (
-        "--rollout-num-gpus-per-engine 1 "
+        "--rollout-num-gpus-per-engine 4 "
         "--sglang-mem-fraction-static 0.6 "
         f"--sglang-cuda-graph-bs {' '.join(map(str, [4, 8] + list(range(16, 257, 8))))} "
         "--sglang-device npu "
@@ -131,6 +127,7 @@ def execute():
 
     execute_train_npu(
         train_args=train_args,
+        train_script="train_async.py",
         megatron_model_type=megatron_model_type,
         extra_env_vars=({"WANDB_API_KEY": os.environ["WANDB_API_KEY"]} if os.environ.get("WANDB_API_KEY") else {}),
     )

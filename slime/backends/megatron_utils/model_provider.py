@@ -139,10 +139,13 @@ def get_model_provider_func(
         provider.expert_tensor_parallel_size = args.expert_tensor_parallel_size
         provider.sequence_parallel = args.sequence_parallel
         provider.gradient_accumulation_fusion = args.gradient_accumulation_fusion
-        # Recompute settings - enable these if memory is insufficient
-        # provider.recompute_granularity = args.recompute_granularity
-        # provider.recompute_method = args.recompute_method
-        # provider.recompute_num_layers = args.recompute_num_layers
+        if hasattr(args, "recompute_granularity"):
+            provider.recompute_granularity = args.recompute_granularity
+        if hasattr(args, "recompute_method"):
+            provider.recompute_method = args.recompute_method
+        if hasattr(args, "recompute_num_layers"):
+            provider.recompute_num_layers = args.recompute_num_layers
+            
         for key, value in vars(args).items():
             if hasattr(provider, key):
                 continue
