@@ -16,8 +16,8 @@ pip install -e python[srt_npu]
 git checkout . && git checkout sglang-slime
 cd ..
 
-echo "2. install torch & torch_npu & triton_ascend & other basic packages"
-pip install torch==2.8.0 torch_npu==2.8.0.post2 torchvision==0.23.0 triton_ascend==3.2.0 transformers==5.0.0
+echo "2. install torch & torch_npu & other basic packages"
+pip install torch==2.8.0 torch_npu==2.8.0.post2 torchvision==0.23.0 transformers==5.0.0
 
 echo "3.install sgl-kernel-npu from release whl"
 if [ "$NPU_DEVICE" = "A3" ]; then
@@ -65,11 +65,15 @@ git clone https://gitcode.com/Ascend/MindSpeed.git && \
 cd MindSpeed/ && git checkout ${MindSpeed_COMMIT} && \
 pip install -e . && cd ..
 
-echo "6.install slime-ascend"
+echo "6.install triton_ascend"
+pip uninstall triton triton_ascend -y
+pip install triton_ascend==3.2.0
+
+echo "7.install slime-ascend"
 cd slime-ascend/ 
 pip install -e . 
 
-echo "7.apply npu patches"
+echo "8.apply npu patches"
 cd ../sglang
 git am ../slime-ascend/docker/npu_patch/v0.2.2/sglang/*
 cd ../Megatron-LM/
@@ -81,11 +85,14 @@ git am ../slime-ascend/docker/npu_patch/v0.2.2/mindspeed/*
 cd ../mbridge/
 git am ../slime-ascend/docker/npu_patch/v0.2.2/mbridge/*
 
-echo "8. install custom ops, this will be removed in the future after sglang is updated. please refer to https://gitcode.com/cann/cann-recipes-infer/issues/122 if you encounter version check error."
+echo "9. install custom ops, this will be removed in the future after sglang is updated."
 cd ..
 git clone https://gitcode.com/cann/cann-recipes-infer.git
-cd cann-recipes-infer/ops/ascendc
+cd cann-recipes-infer
+git checkout 6715a0be2cc && git cherry-pick 98946b6a
+cd ops/ascendc
 bash build.sh
 ./output/CANN-custom_ops-*.run
 cd torch_ops_extension
 bash build_and_install.sh
+cd ../../../../slime-ascend
