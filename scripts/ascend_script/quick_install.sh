@@ -30,6 +30,11 @@ unzip sgl-kernel-npu*.zip
 pip install torch_memory_saver*.whl
 pip install sgl_kernel_npu*.whl
 pip install deep_ep*.whl
+# For using deep_ep: Link to the deep_ep_cpp.*.so file
+cd "$(pip show deep-ep | grep -E '^Location:' | awk '{print $2}')" && ln -s deep_ep/deep_ep_cpp*.so && cd -
+
+# (Optional) Confirm whether the import can be successfully
+python -c "import deep_ep; print(deep_ep.__path__)"
 # echo "3. install sgl-kernel-npu form source, detailed readme in https://github.com/sgl-project/sgl-kernel-npu/blob/main/python/deep_ep/README.md"
 # git clone https://github.com/sgl-project/sgl-kernel-npu.git
 # cd sgl-kernel-npu
@@ -54,7 +59,7 @@ pip install -e . && cd ..
 
 git clone https://github.com/fzyzcjy/Megatron-Bridge.git
 cd Megatron-Bridge && git checkout dev_rl && cd ..
-pip install nvidia-modelopt[torch]>=0.37.0 --no-build-isolation
+pip install "nvidia-modelopt[torch]>=0.37.0" --no-build-isolation
 
 git clone https://github.com/NVIDIA/Megatron-LM.git --recursive && \
 cd Megatron-LM/ && git checkout ${MEGATRON_COMMIT} && \
