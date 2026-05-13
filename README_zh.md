@@ -1,6 +1,11 @@
 # slime-ascend
 
-slime的昇腾适配开发仓
+   > 本项目主要在昇腾 (Ascend) NPU 环境下运行， **[👉 点击这里查看本项目的详细使用说明 (昇腾中文版) / Click here for Ascend NPU Guide](./README_ascend_zh.md)**
+   
+   以下为slime原主仓文档内容。
+   
+    
+   ---
 
 [English](./README.md)
 
