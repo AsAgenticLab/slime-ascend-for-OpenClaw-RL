@@ -2,7 +2,7 @@
 
 Huawei Ascend NPU adaptation repository for slime
 
-[中文](./README_ascend_zh.md) | [Original slime Documentation](./README_zh.md)
+[中文](./README_ascend_zh.md)
 
 [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg?style=flat)](https://thudm.github.io/slime/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/THUDM/slime)
@@ -16,11 +16,10 @@ Huawei Ascend NPU adaptation repository for slime
 ## Table of Contents
 
 - [Quick Start](#quick-start)
-- [Parameter Description](#parameter-description)
 - [Features](#features)
 - [Development Guide](#development-guide)
-- [Security Statement](#security-statement)
-- [Disclaimer](#disclaimer)
+- [Contributing](#contributing)
+- [Security Statement & Disclaimer](#security-statement)
 - [FAQ & Acknowledgments](#faq--acknowledgments)
 
 The overall architecture of slime-ascend can be found in [slime Architecture Overview](./README_zh.md#架构总览).
@@ -43,13 +42,13 @@ The overall architecture of slime-ascend can be found in [slime Architecture Ove
 
 ## Features
 
-Currently, we support standard training-inference separation configuration on NPU. For more supported features, please see: .
+Currently, we support standard training-inference separation configuration on NPU. For more supported features, please see: [feature_introduction](./docs/ascend_tutorial/get_started/feature_introduction.md).
 
 ## Development Guide
 
 After completing the NPU environment setup mentioned above, you can seamlessly transition to the standard model operation pipeline. For specific commands and parameter settings for training, saving, and evaluation, please refer directly to the original main repository documentation:
 
-- **Training Process Guide**: For configuration and launching of model training methods, see [Quick Start Guide](./docs/zh/get_started/quick_start.md#训练脚本与参数概览).
+- **Training Process Guide**: For configuration and launching of model training methods, please refer to slime [Quick Start Guide](./docs/zh/get_started/quick_start.md#训练脚本与参数概览).
 - **Saving Process Guide**: For model checkpoint saving, conversion, and loading processes, please refer to slime [Quick Start Guide](./docs/zh/get_started/quick_start.md#模型权重转换).
 - **Evaluation Process Guide**: For evaluation and scoring process of model responses after training, please refer to slime [Quick Start Guide](./docs/zh/get_started/quick_start.md#eval_args-评估参数).
 
@@ -64,13 +63,13 @@ If you have feature suggestions, performance tuning, or usage experience feedbac
 
 - Use [pre-commit](https://pre-commit.com/) to ensure submitted code style:
 
-  ```bash
-  apt install pre-commit -y
-  pre-commit install
+  ```bash
+  apt install pre-commit -y
+  pre-commit install
 
-  # Run pre-commit to ensure code style
-  pre-commit run --all-files --show-diff-on-failure --color=always
-  ```
+  # Run pre-commit to ensure code style
+  pre-commit run --all-files --show-diff-on-failure --color=always
+  ```
 
 - For debugging tips, please refer to [debug guide](docs/zh/developer_guide/debug.md)
 
