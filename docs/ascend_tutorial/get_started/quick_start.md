@@ -46,7 +46,7 @@
 
 ### 方式一：Docker（推荐）
 
-我们提供了针对 A2 和 A3 硬件的 Dockerfile，可快速构建完整训练环境。
+我们提供了针对 A2 和 A3 硬件的 [Dockerfile](../../../docker/npu_docker/v0.2.2/dockerfile_build_guidance.md)，可快速构建完整训练环境。
 
 #### 镜像构建
 
@@ -82,7 +82,7 @@ docker run -it --rm \
 
 ### 方式二：本地安装脚本
 
-我们提供了一键安装脚本，可快速搭建 NPU 环境：
+我们提供了[一键安装脚本](../../../scripts/ascend_script/quick_install.sh)，可快速搭建 NPU 环境：
 
 ```bash
 conda create -n slime-ascend python=3.11
@@ -97,6 +97,7 @@ export NPU_DEVICE=A3
 source ${CANN_INSTALL_PATH}/ascend-toolkit/set_env.sh
 source ${CANN_INSTALL_PATH}/nnal/atb/set_env.sh
 # 运行安装脚本
+cd slime-ascend
 bash scripts/ascend_script/quick_install.sh
 ```
 

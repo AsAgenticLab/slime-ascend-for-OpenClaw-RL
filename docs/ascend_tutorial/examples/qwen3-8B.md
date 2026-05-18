@@ -41,7 +41,7 @@ PYTHONPATH=/path/to/Megatron-LM:/path/to/Megatron-Bridge/src torchrun --nproc-pe
     --save /path/to/Qwen3-8B_torch_dist
 ```
 ## 开始训练
-当前环境及数据模型均准备完毕,修改训练脚本中的对应参数,即可开始训练。
+当前环境及数据模型均准备完毕，修改训练脚本中的对应参数,即可开始训练。
 主要修改参数包括：
 - `--hf-checkpoint`: 指定已下载的 Hugging Face 模型权重路径。
 - `--ref-load`: 指定转换后的 `torch_dist` 格式权重路径。
@@ -53,3 +53,4 @@ PYTHONPATH=/path/to/Megatron-LM:/path/to/Megatron-Bridge/src torchrun --nproc-pe
 ```bash
 cd /path/to/slime-ascend
 bash scripts/ascend_script/run-qwen3-8B-npu.sh
+```

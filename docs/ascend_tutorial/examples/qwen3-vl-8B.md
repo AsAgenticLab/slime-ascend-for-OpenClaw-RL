@@ -42,8 +42,8 @@ pip install triton-ascend==3.2.0
 pip uninstall transformers
 pip install transformers==4.57.1
 
-pip uninstall torch torch-npu
-pip install torch-npu==2.8.0
+pip uninstall torch torch_npu
+pip install torch==2.8.0 torch_npu==2.8.0
 
 unset http_proxy
 unset https_proxy
@@ -52,17 +52,19 @@ unset HTTPS_PROXY
 ```
 
 ## 开始训练
-当前环境及数据模型均准备完毕,修改训练脚本中的对应参数,即可开始训练。
+当前环境及数据模型均准备完毕，修改训练脚本中的对应参数,即可开始训练。
 在 slime-ascend 文件夹内对以下文件进行修改（主要修改CANN路径、权重路径及训练集路径）：
 1、examples/geo3k_vlm_multi_turn/run_grpo_npu.sh
 2、examples/geo3k_vlm_multi_turn/run_geo3k_vlm_multi_turn_grpo_npu.py
 
 主要修改参数包括：
 - `ckpt_args`, `--load`, `--ref-load`: 指定已下载的 Hugging Face 模型权重路径。
-- `DATA_ROOT`: 指定指定数据集的路径。
+- `DATA_ROOT`: 指定数据集的路径。
 - `PYTHONPATH`: 指定`Megatron-Bridge`, `Megatron-LM`, `sglang`的路径。
 
 运行训练脚本：
 ```bash
+# GRPO算法
 cd /path/to/slime-ascend
 bash examples/geo3k_vlm_multi_turn/run_grpo_npu.sh
+```
