@@ -50,8 +50,8 @@ Atlas 800T A2
 
 | 设备类型 | CANN版本 | 参考文件 |
 | -------- | -------- | -------- |
-| A3 | 8.5.0 | [Dockerfile.a3.ubuntu22.04.cann850.latest](../../Dockerfile.a3.ubuntu22.04.cann850.latest) |
-| A2 | 8.5.0 | [Dockerfile.a2.ubuntu22.04.cann850.latest](../../Dockerfile.a2.ubuntu22.04.cann850.latest) |
+| A3 | 8.5.0 | [Dockerfile.a3.ubuntu22.04.cann850.latest](../v0.2.2/Dockerfile.a3.ubuntu22.04.cann850.latest) |
+| A2 | 8.5.0 | [Dockerfile.a2.ubuntu22.04.cann850.latest](../v0.2.2/Dockerfile.a2.ubuntu22.04.cann850.latest) |
 
 
 ## 前置准备

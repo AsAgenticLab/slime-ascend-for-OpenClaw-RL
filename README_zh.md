@@ -15,7 +15,7 @@
 **slime** 是为 RL scaling 设计的 LLM post‑training 框架，提供两大核心能力：
 
 1. **高性能训练**：通过连接 Megatron 与 SGLang，支持各种模式的高效训练；
-2. **灵活的数据生成**：通过自定义数据生成接口以及 server based engine，实现任意的数据训练数据生成流程。
+2. **灵活的数据生成**：通过自定义数据生成接口以及 server based engine，实现任意的训练数据生成流程。
 
 slime 是 [GLM-4.7](https://z.ai/blog/glm-4.7)、[GLM-4.6](https://z.ai/blog/glm-4.6)、[GLM-4.5](https://z.ai/blog/glm-4.5) 背后的 RL 训练框架，除此之外，slime 还支持:
 - Qwen3 系列 (Qwen3Next, Qwen3MoE, Qwen3), Qwen2.5 系列；
@@ -33,8 +33,6 @@ slime 是 [GLM-4.7](https://z.ai/blog/glm-4.7)、[GLM-4.6](https://z.ai/blog/glm
 
 - [架构总览](#架构总览)
 - [快速开始](#快速开始)
-- [Checkpoint 格式转换](#checkpoint-格式转换)
-- [启动训练流程](#启动训练流程)
 - [参数说明](#参数说明)
 - [开发指南](#开发指南)
 - [常见 Q&A 与致谢](#常见-qa-与致谢)

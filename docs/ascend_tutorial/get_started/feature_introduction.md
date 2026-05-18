@@ -72,7 +72,7 @@ SGLANG_ARGS=(
 
 ## Context Parallel
 
-支持 Megatron 上下文并行（Context Parallel），将超长序列沿 token 维度切分到多张 GPU 上并行计算，突破单卡显存对序列长度的限制。
+支持 Megatron 上下文并行（Context Parallel），将超长序列沿 token 维度切分到多张 NPU 上并行计算，突破单卡显存对序列长度的限制。
 
 可配合长上下文数据集（如 128K token）进行训练与推理，用于长文档理解、多轮对话、代码库分析等需要处理超长输入的场景。
 

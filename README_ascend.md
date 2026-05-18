@@ -63,13 +63,13 @@ If you have feature suggestions, performance tuning, or usage experience feedbac
 
 - Use [pre-commit](https://pre-commit.com/) to ensure submitted code style:
 
-  ```bash
-  apt install pre-commit -y
-  pre-commit install
+  ```bash
+  apt install pre-commit -y
+  pre-commit install
 
-  # Run pre-commit to ensure code style
-  pre-commit run --all-files --show-diff-on-failure --color=always
-  ```
+  # Run pre-commit to ensure code style
+  pre-commit run --all-files --show-diff-on-failure --color=always
+  ```
 
 - For debugging tips, please refer to [debug guide](docs/zh/developer_guide/debug.md)
 

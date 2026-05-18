@@ -17,7 +17,7 @@
 
 - `--actor-num-nodes`：RL 的 actor 训练需要多少节点；
 
-- `--actor-num-gpus-per-node`：RL 的 actor 训练的每个节点有卡；
+- `--actor-num-gpus-per-node`：RL 的 actor 训练的每个节点有多少卡；
 
 - `--rollout-num-gpus`：rollout （inference）一共需要多少卡；
 
@@ -42,7 +42,7 @@ slime 支持多种训练后端，可以通过 `--train-backend` 参数进行选�
 
 ### 加载 megatron
 
-megatron 与 sglang, vllm 或者 huggingface trainer 之类的工具不同，他不能直接读取 huggingface ckpt，而是需要用户配置好要训练的模型的参数，并且加载 megatron 自己的 ckpt。
+megatron 与 sglang, vllm 或者 huggingface trainer 之类的工具不同，它不能直接读取 huggingface ckpt，而是需要用户配置好要训练的模型的参数，并且加载 megatron 自己的 ckpt。
 
 一般来说，我们需要做 3 点准备：
 
@@ -105,7 +105,7 @@ megatron 是目前优化最为齐全的训练框架，大家使用 megatron 的�
 
 #### 加载 megatron ckpt
 
-megatron 支持多种其自定义的 ckpt 格式，这里介绍 2 种比较主流的格式，
+megatron 支持多种其自定义的 ckpt 格式，这里介绍 2 种比较主流的格式：
 
 - 曾经比较主流的 torch 格式（对应 `--ckpt-format torch`）；
 - 现在推荐使用的 torch_dist 格式（对应  `--ckpt-format torch_dist`）
@@ -128,7 +128,7 @@ torch 格式是 megatron 的老存储格式，里面的结构大约是一些 `mp
     |-- ...
 ```
 
-其中 `latest_checkpointed_iteration.txt` 中记录了训练最新的训练步。在加载模型时，不能直接传入 `/ckpt/iter_xxxxxxx`，而是要传入 `/ckpt/`，并用 `--ckpt-step` 来选取对应的训练步（如果不使用 `--ckpt-step`，则会通过 `latest_checkpointed_iteration.txt` 读取对应的训练步。）
+其中 `latest_checkpointed_iteration.txt` 中记录了最新的训练步。在加载模型时，不能直接传入 `/ckpt/iter_xxxxxxx`，而是要传入 `/ckpt/`，并用 `--ckpt-step` 来选取对应的训练步（如果不使用 `--ckpt-step`，则会通过 `latest_checkpointed_iteration.txt` 读取对应的训练步。）
 
 在使用 slime 的时候，有 3 个参数用来加载和保存 ckpt：
 
@@ -148,7 +148,7 @@ sglang 的加载非常简单，只需要：
 
 注意：
 
-- 在第一个训练步之前，slime 会把 megatron 里的参数同步给 sglang，所以 `--hf-checkpoint` 中不需要有最新的训练参数，在续训得时候也不需要更换 hf ckpt；
+- 在第一个训练步之前，slime 会把 megatron 里的参数同步给 sglang，所以 `--hf-checkpoint` 中不需要有最新的训练参数，在续训的时候也不需要更换 hf ckpt；
 - sglang 默认会从 huggingface ckpt 中 `config.json` 读取模型的最大 context length，可以使用 `--sglang-context-length` 参数来对这个值进行覆盖，从而支持进行更长的推理；
 - 在训推一体的训练过程中，虽然 megatron 和 sglang 会先后 offload，但是还是需要为对方留有一些空间，需要通过减小 `--sglang-mem-fraction-static` 来调整 sglang 的显存占用总量。
 - slime 支持透传 sgl-router 的参数，方式是在原参数名前加上 `router` 前缀。例如，sgl-router 的 `--balance-abs-threshold` 参数需要设置为 `--router-balance-abs-threshold`。由于 sgl-router 默认使用 cache-aware routing，可能会导致请求分配不均衡的问题。可以通过设置 `--router-balance-abs-threshold 0` 来强制均衡分配，但这可能会影响多轮对话场景下 prefix cache 的命中率。
@@ -165,7 +165,7 @@ sglang 的加载非常简单，只需要：
     {
       "content": "Solve the following math problem step by step. The last line of your response should be of the form Answer: \\boxed{$Answer} where $Answer is the answer to the problem.\n\nIn triangle $ABC$, $\\sin \\angle A = \\frac{4}{5}$ and $\\angle A < 90^\\circ$. Let $D$ be a point outside triangle $ABC$ such that $\\angle BAD = \\angle DAC$ and $\\angle BDC = 90^\\circ$. Suppose that $AD = 1$ and that $\\frac{BD}{CD} = \\frac{3}{2}$. If $AB + AC$ can be expressed in the form $\\frac{a\\sqrt{b}}{c}$ where $a, b, c$ are pairwise relatively prime integers, find $a + b + c$.\n\nRemember to put your answer on its own line after \"Answer:\".",
       "role": "user",
-      "step_loss_mask": 1,
+      "step_loss_mask": 1
     }
   ],
   "label": "34"
@@ -347,7 +347,7 @@ slime 通过引入 sglang 的 `ServerArgs.add_cli_args`，从而引入了几乎�
 - 在训练中，希望 sglang 能推理超过 huggingface checkpoint 的 `config.json` 中标识的最长 context length，需要使用 `--context-length`，那么在 slime 中需要使用 `--sglang-context-length`；
 - 在进行多机大 ep 推理的时候，需要 `--ep-size`、`--enable-dp-attention`、`--dp-size`、`--moe-a2a-backend deepep` 等，则可以对应地传入 `--sglang-ep-size`、`--sglang-enable-dp-attention`、`--sglang-dp-size`、`--sglang-moe-a2a-backend deepep` 。
 
-有部分参与和 slime 的资源调度相关，会由 slime 自行配置，例如：
+有部分参数和 slime 的资源调度相关，会由 slime 自行配置，例如：
 
 - `--tp-size` 在 slime 中会使用 `--rollout-num-gpus-per-engine`
 - `--model-path` 在 slime 中会使用 `--hf-checkpoint`
