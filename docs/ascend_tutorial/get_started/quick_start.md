@@ -32,6 +32,7 @@
 | SGLang | v0.5.8 (sglang-slime branch) | v0.5.8 (sglang-slime branch) |
 | sgl-kernel-npu | 2026.03.01.post1 | 2026.02.01 |
 | nvidia-modelopt | >=0.37.0 | >=0.37.0 |
+| Slime | v0.2.2 | v0.2.2 |
 
 ## 使用指南
 
@@ -97,8 +98,7 @@ export NPU_DEVICE=A3
 source ${CANN_INSTALL_PATH}/ascend-toolkit/set_env.sh
 source ${CANN_INSTALL_PATH}/nnal/atb/set_env.sh
 # 运行安装脚本
-cd slime-ascend
-bash scripts/ascend_script/quick_install.sh
+bash slime-ascend/scripts/ascend_script/quick_install.sh
 ```
 
 **安装脚本会自动完成以下工作**：
