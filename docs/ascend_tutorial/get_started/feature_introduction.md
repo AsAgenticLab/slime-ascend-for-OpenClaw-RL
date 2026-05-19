@@ -28,11 +28,11 @@ ray job submit ... \
    ${RM_ARGS[@]}
 ```
 
-- `--custom-rm-path`：指向自定义奖励函数。该函数将样本的完整 token 序列（prompt + response）发送至教师模型服务，请求返回每个 token 的 log probability，详细内容可参考 [on_policy_distillation.py](https://gitcode.com/Ascend/slime-ascend/blob/main/examples/on_policy_distillation/on_policy_distillation.py)。
+- `--custom-rm-path`：指向自定义奖励函数。该函数将样本的完整 token 序列（prompt + response）发送至教师模型服务，请求返回每个 token 的 log probability，详细内容可参考 [on_policy_distillation.py](../../../examples/on_policy_distillation/on_policy_distillation.py)。
 - `--custom-reward-post-process-path`：指向后处理函数。该函数从教师模型的返回结果中提取 response 部分的 token 级 log probabilities，并存入 sample.teacher_log_probs，供训练引擎在计算蒸馏损失（通常为 KL 散度）时使用。
 - `--rm-url`：教师模型的推理服务地址（例如 SGLang Server 部署的 /generate 端点），用于实时获取教师模型的输出概率。
 
-更多信息可以参考 [run-glm4.7-30B-opd.sh](https://gitcode.com/Ascend/slime-ascend/blob/main/examples/on_policy_distillation/run-glm4.7-30B-opd.sh)。
+更多信息可以参考 [run-glm4.7-30B-opd.sh](../../../examples/on_policy_distillation/run-glm4.7-30B-opd.sh)。
 > 💡 **提示**：教师模型与学生模型使用相同 tokenizer 对应的 token id 序列作为输入，因此两者必须是基于相同词表的模型。教师模型不生成新 token，仅对输入序列的每个 token 返回 log probability。
 
 ---
@@ -41,7 +41,7 @@ ray job submit ... \
 
 TIS 是一种 off-policy 校正技术，针对 rollout 阶段与 train 阶段之间的策略版本不匹配（training-inference mismatch），通过对旧策略样本施加重要性采样权重并截断，在限制方差的同时提高训练稳定性。
 
-其原理详见 [Off-Policy RL 博客](https://fengyao.notion.site/off-policy-rl) 和 [Rollout Correction Methods.md](https://gitcode.com/Ascend/slime-ascend/blob/main/examples/train_infer_mismatch_helper/README.md)。
+其原理可以参考 [Off-Policy RL 博客](https://fengyao.notion.site/off-policy-rl) 和 [Rollout Correction Methods.md](../../../examples/train_infer_mismatch_helper/README.md)。
 
 要启用 TIS，需要在 `GRPO_ARGS` 中开启 `--use-tis`：
 
@@ -114,10 +114,10 @@ ROLLOUT_ARGS=(
 )
 ```
 
-- `--custom-generate-function-path`：指向基于 ReTool 实现的自定义生成函数，例如 `generate_with_retool.generate`。该函数通过 ReTool 框架控制完整的 rollout 过程：prompt 构建、工具调用循环、停止条件判断等，详细内容可参考 [generate_with_retool.py](https://gitcode.com/Ascend/slime-ascend/blob/main/examples/retool/generate_with_retool.py)。
+- `--custom-generate-function-path`：指向基于 ReTool 实现的自定义生成函数，例如 `generate_with_retool.generate`。该函数通过 ReTool 框架控制完整的 rollout 过程：prompt 构建、工具调用循环、停止条件判断等，详细内容可参考 [generate_with_retool.py](../../../examples/retool/generate_with_retool.py)。
 
 - `--custom-rm-path`：指向自定义奖励函数，负责对工具使用结果（如是否成功调用、返回值正确性等）进行打分。
 
-更多信息可以参考 [retool_glm4.7_flash_rl_npu.sh](https://gitcode.com/Ascend/slime-ascend/blob/main/examples/retool/retool_glm4.7_flash_rl_npu.sh)。
+更多信息可以参考 [retool_glm4.7_flash_rl_npu.sh](../../../examples/retool/retool_glm4.7_flash_rl_npu.sh)。
 
 > ⚠️ **注意**：需从 ROLLOUT_ARGS 中删除 --apply-chat-template：因为 ReTool 的生成函数内部会自行处理工具调用格式和消息拼接，无需 slime 再应用默认的聊天模板。

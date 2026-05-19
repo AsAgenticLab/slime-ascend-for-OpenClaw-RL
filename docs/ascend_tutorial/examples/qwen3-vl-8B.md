@@ -54,8 +54,16 @@ unset HTTPS_PROXY
 ## 开始训练
 当前环境及数据模型均准备完毕，修改训练脚本中的对应参数,即可开始训练。
 在 slime-ascend 文件夹内对以下文件进行修改（主要修改CANN路径、权重路径及训练集路径）：
-1、examples/geo3k_vlm_multi_turn/run_grpo_npu.sh
-2、examples/geo3k_vlm_multi_turn/run_geo3k_vlm_multi_turn_grpo_npu.py
+
+**GRPO:**
+
+- `examples/geo3k_vlm_multi_turn/run_grpo_npu.sh`
+- `examples/geo3k_vlm_multi_turn/run_geo3k_vlm_multi_turn_grpo_npu.py`
+
+**PPO:**
+
+- `examples/geo3k_vlm_multi_turn/run_ppo_npu.sh`
+- `examples/geo3k_vlm_multi_turn/run_geo3k_vlm_multi_turn_ppo_npu.py`
 
 主要修改参数包括：
 - `ckpt_args`, `--load`, `--ref-load`: 指定已下载的 Hugging Face 模型权重路径。
@@ -64,7 +72,18 @@ unset HTTPS_PROXY
 
 运行训练脚本：
 ```bash
-# GRPO算法
 cd /path/to/slime-ascend
+# GRPO
 bash examples/geo3k_vlm_multi_turn/run_grpo_npu.sh
+# PPO
+bash examples/geo3k_vlm_multi_turn/run_ppo_npu.sh
+```
+
+如果要同时保存日志并显示它们：
+
+```shell
+# GRPO
+bash examples/geo3k_vlm_multi_turn/run_grpo_npu.sh 2>&1 | tee -a <LOG_FILE>
+# PPO
+bash examples/geo3k_vlm_multi_turn/run_ppo_npu.sh 2>&1 | tee -a <LOG_FILE>
 ```
