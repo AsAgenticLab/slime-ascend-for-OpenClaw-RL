@@ -33,7 +33,7 @@ pip install deep_ep*.whl
 # For using deep_ep: Link to the deep_ep_cpp.*.so file
 cd "$(pip show deep-ep | grep -E '^Location:' | awk '{print $2}')" && ln -s deep_ep/deep_ep_cpp*.so
 # Avoid "ln -s" failure due to existing deep_ep symlink which breaks "cd -", hence split it out separately.
-cd - && cd ..
+cd -
 
 # (Optional) Confirm whether the import can be successfully
 python -c "import deep_ep; print(deep_ep.__path__)"
