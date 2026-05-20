@@ -1,12 +1,12 @@
 # Low Precision Training
 
-- [FP8 rollout and FP8 training](#FP8-rollout-and-BF16-training)
+- [FP8 rollout and BF16 training](#FP8-rollout-and-BF16-training)
 - [FP8 rollout and FP8 training](#FP8-rollout-and-FP8-training)
 - [INT4 QAT Training](#INT4-QAT-Training)
 
 ## FP8 rollout and BF16 training
 
-You can run FP8 rollout simply by setting `--hf-checkpoint` with an blockwise quantized huggingface checkpoint, which can be converted by:
+You can run FP8 rollout simply by setting `--hf-checkpoint` with a blockwise quantized huggingface checkpoint, which can be converted by:
 
 ```bash
 python tools/convert_hf_to_fp8.py \
@@ -70,7 +70,7 @@ Here's a quick explanation of how FP8 training is currently implemented in slime
 
 ### TODO
 
-Currently, FP8 is far from being a complete feature and still has the following bugs, for examples:
+Currently, FP8 is far from being a complete feature and still has the following bugs, for example:
 
 - FP8 weights (`--fp8-param-gather`) can provide memory savings benefits, but currently FP8 weights must be used with TransformerEngine's FusedAdam, which conflicts with the commonly used Adam CPU offload technique in Megatron-LM.
 
@@ -103,7 +103,7 @@ You need to configure the specific environment variables for quantization settin
 
 *   **`OPEN_TRAINING_INT4_FAKE_QAT_FLAG`**: Enables fake quantization operations for INT4 training.
 *   **`OPEN_TRAINING_INT4_GROUP_SIZE`**: Specifies the block size (group size) for model quantization.
-    *   Set to **128** for `moonlight-16B-A3B` 、 `qwen3-30B-A3B`and `qwen3-235B-A22B-int4`.
+    *   Set to **128** for `moonlight-16B-A3B`, `qwen3-30B-A3B`and `qwen3-235B-A22B-int4`.
     *   Set to **32** for `kimi-k2-Thinking-int4`.
 
 **Configuration Example:**

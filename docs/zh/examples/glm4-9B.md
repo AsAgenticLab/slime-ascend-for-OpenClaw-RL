@@ -137,7 +137,7 @@ EVAL_ARGS=(
 
 一堆 megatron 的并行参数，只有 `--use-dynamic-batch-size` 与 `--max-tokens-per-gpu` 是 slime 添加的。
 
-`max_tokens_per_gpu` 是指每张卡最多跑多少 token，在开启 `use_dynamic_batch_size` 之后，会尽可能将一个 batch 内部长短不一的数据拼到 `max_tokens_per_gpu`，从而组成动态的 micro batch size，如果有一条数据长度超过了 `max_tokens_per_gpu`，则自成一条，不会对数据进行截断。在开启 context parallel (CP) 时，会让 CP 张卡去上的数据去共享总长为 `CP * max_tokens_per_gpu` 的 token。
+`max_tokens_per_gpu` 是指每张卡最多跑多少 token，在开启 `use_dynamic_batch_size` 之后，会尽可能将一个 batch 内部长短不一的数据拼到 `max_tokens_per_gpu`，从而组成动态的 micro batch size，如果有一条数据长度超过了 `max_tokens_per_gpu`，则自成一条，不会对数据进行截断。在开启 context parallel (CP) 时，会让 CP 张卡上的数据去共享总长为 `CP * max_tokens_per_gpu` 的 token。
 
 在开启 dynamic_batch_size，会忽略传统的 `micro_batch_size`。
 
@@ -164,7 +164,7 @@ PERF_ARGS=(
 
 #### GRPO_ARGS
 
-目前 slime 这是一些 grpo 相关的参数：
+目前 slime 中一些 grpo 相关的参数：
 
 ```bash
 GRPO_ARGS=(
@@ -216,7 +216,7 @@ ray job submit ... \
    ...
 ```
 
-即开启训推分离，并且训练部分会使用 1 机 8 卡，推理会和训练共同使用这 8 张卡张卡。
+即开启训推分离，并且训练部分会使用 1 机 8 卡，推理会和训练共同使用这 8 张卡。
 
 如果想使用训推一体（colocate）的功能，需要加上 `--colocate` 并去掉 `--rollout-num-gpus`：
 
@@ -243,7 +243,7 @@ slime 支持了更复杂的 sampling 方案，例如 [DAPO](https://dapo-sia.git
      slime.rollout.filter_hub.dynamic_sampling_filters.check_reward_nonzero_std \
 ```
 
-这里 `over_sampling_batch_size` 需要大于 ``rollout_batch_size`，例如配置为：
+这里 `over_sampling_batch_size` 需要大于 `rollout_batch_size`，例如配置为：
 
 ```bash
    --rollout-batch-size 32 \
