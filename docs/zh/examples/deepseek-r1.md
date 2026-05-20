@@ -60,7 +60,7 @@ bash scripts/run-deepseek-r1.sh
 在其他 node 需要通过如下的指令加入 ray 集群：
 
 ```bash
-ray start --address=${MASTER_ADDR}:6379 --num-gpus 8 --node-ip-address ${WORKER_IP} --disable-usage-stats"
+ray start --address=${MASTER_ADDR}:6379 --num-gpus 8 --node-ip-address ${WORKER_IP} --disable-usage-stats
 ```
 
 或者如果你能获取到所有节点的 ip 列表，例如有一个 mpi hostfie（每一行为 `ip slot=8`），那么可以在 `scripts/run-deepseek-r1.sh` 中的 `ray start --head` 指令之后加入如下的指令，从而只需要从 node0 执行训练：

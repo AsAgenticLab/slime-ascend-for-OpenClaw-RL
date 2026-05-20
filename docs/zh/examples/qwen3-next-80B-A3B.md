@@ -1,11 +1,11 @@
-# 8xH100 训练 Qwen3-30B-A3B
+# 8xH100 训练 Qwen3-Next-80B-A3B-Instruct
 
 ## 环境准备
 
 搭建环境、下载模型、数据与 ckpt 转换均与 Qwen3-4B 模型相同，可以参考 [示例：Qwen3-4B](./qwen3-4B.md)，将文中 Qwen3-4B 的部分转换为
-Qwen3-next-80B-A3B-Instruct 即可。
+Qwen3-Next-80B-A3B-Instruct 即可。
 
-可以用如下完整方法把 huggingface checkpoint 转化为 torch_dist 格式：
+可以用如下完整方法把 HuggingFace checkpoint 转化为 torch_dist 格式：
 
 ```bash
 export BASE_FOLDER=./models/
@@ -30,7 +30,7 @@ pip install ./causal_conv1d-1.5.4+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86
 
 ## [Optional] Fix a bug in triton compilation on Blackwell (sm100)
 
-see discussion here https://github.com/triton-lang/triton/issues/8695
+See discussion here https://github.com/triton-lang/triton/issues/8695
 and https://github.com/fla-org/flash-linear-attention/issues/638
 
 We need to apply a patch to fix the bug.

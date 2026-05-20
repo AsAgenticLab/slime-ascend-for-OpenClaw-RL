@@ -92,7 +92,7 @@ PERF_ARGS=(
 )
 ```
 
-> 💡 **提示**：上下文并行通常与张量并行（--tensor-model-parallel-size）结合使用，请根据总 GPU 数量和序列长度合理分配并行维度。
+> 💡 **提示**：上下文并行通常与张量并行（--tensor-model-parallel-size）结合使用，请根据总 NPU 数量和序列长度合理分配并行维度。
 
 ---
 

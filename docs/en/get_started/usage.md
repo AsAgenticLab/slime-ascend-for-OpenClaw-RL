@@ -176,7 +176,7 @@ This corresponds to the following configuration:
   --apply-chat-template
 ```
 
-Please note that the `step_loss_mask` (default=1) here is for SFT phase. If it is set to 0, the turn will not contibute to the final loss; if it is set to 1, slime will use the normal `loss_mask`.
+Please note that the `step_loss_mask` (default=1) here is for SFT phase. If it is set to 0, the turn will not contribute to the final loss; if it is set to 1, slime will use the normal `loss_mask`.
 Additionally, we provide a `metadata_key`, which defaults to `"metadata"`. When read, slime will load the metadata from the data, which can be helpful for custom data generation or creating custom reward models.
 
 ### Hyperparameters for RL Training

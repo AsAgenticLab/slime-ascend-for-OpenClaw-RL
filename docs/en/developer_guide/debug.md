@@ -52,7 +52,7 @@ Specifically, slime currently provides the following parameters for separate deb
 
 ## Debug sglang illegal memory access (IMA)
 
-When running large scale RL, we will occationally meet the IMA in SGLang, there are some debug suggestions based on our experience:
+When running large scale RL, we will occasionally meet the IMA in SGLang, there are some debug suggestions based on our experience:
 
 1. Enable `CUDA_LAUNCH_BLOCKING=1`
 
@@ -62,7 +62,7 @@ When running large scale RL, we will occationally meet the IMA in SGLang, there 
 
 3. Turn off deepep
 
-   If you are using deepep during training or inference, you can try turn it off.
+   If you are using deepep during training or inference, you can try to turn it off.
 
 4. Try CUDA Core Dump to find the error kernel
 
