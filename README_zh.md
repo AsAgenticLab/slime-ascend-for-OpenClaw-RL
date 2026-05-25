@@ -1,7 +1,9 @@
 # slime-ascend
 
    > 本项目主要在昇腾 (Ascend) NPU 环境下运行， **[👉 点击这里查看本项目的详细使用说明 (昇腾中文版) / Click here for Ascend NPU Guide](./README_ascend_zh.md)**
-   
+
+  > 本项目 v0.2.2 分支基于 slime v0.2.2 版本，我们在 **NPU** 上进行适配和增量开发，如果您想了解更多 slime main 分支或其他版本有关信息，请访问 [slime](https://github.com/THUDM/slime)
+
    以下为slime原主仓文档内容。
    
     

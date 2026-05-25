@@ -138,6 +138,7 @@ ray start --head --node-ip-address ${MASTER_ADDR} --disable-usage-stats --dashbo
 # Build the runtime environment JSON with proper variable substitution
 RUNTIME_ENV_JSON="{
   \"env_vars\": {
+    \"PYTHONPATH\": \"/path/to/Megatron-LM/:/path/to/Megatron-Bridge/src:$PYTHONPATH\",
     \"CUDA_DEVICE_MAX_CONNECTIONS\": \"1\",
     \"RAY_EXPERIMENTAL_NOSET_ASCEND_RT_VISIBLE_DEVICES\": \"1\",
     \"ASCEND_TOOLKIT_HOME\": \"/path/to/ascend-toolkit/latest/\",
