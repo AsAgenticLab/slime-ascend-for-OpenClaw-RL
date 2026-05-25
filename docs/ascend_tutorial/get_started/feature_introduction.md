@@ -41,7 +41,7 @@ ray job submit ... \
 
 TIS 是一种 off-policy 校正技术，针对 rollout 阶段与 train 阶段之间的策略版本不匹配（training-inference mismatch），通过对旧策略样本施加重要性采样权重并截断，在限制方差的同时提高训练稳定性。
 
-其原理可以参考 [Off-Policy RL 博客](https://fengyao.notion.site/off-policy-rl) 和 [Rollout Correction Methods.md](../../../examples/train_infer_mismatch_helper/README.md)。
+其原理可以详见 [Truncated Importance Sampling](https://ionides.github.io/pubs/ionides08-jcgs.pdf)、 [Off-Policy RL 博客](https://fengyao.notion.site/off-policy-rl) 和 [Rollout Correction Methods.md](../../../examples/train_infer_mismatch_helper/README.md)。
 
 要启用 TIS，需要在 `GRPO_ARGS` 中开启 `--use-tis`：
 
