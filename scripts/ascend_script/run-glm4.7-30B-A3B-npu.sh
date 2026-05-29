@@ -140,7 +140,7 @@ RUNTIME_ENV_JSON="{
     \"PYTHONPATH\": \"/path/to/Megatron-LM/:/path/to/Megatron-Bridge/src:$PYTHONPATH\",
     \"CUDA_DEVICE_MAX_CONNECTIONS\": \"1\",
     \"ASCEND_TOOLKIT_HOME\": \"/path/to/cann/\",
-    \"ASCEND_OPP_PATH\": \"/path/to/cann/\",
+    \"ASCEND_OPP_PATH\": \"/path/to/cann/opp\",
     \"ASCEND_AICPU_PATH\": \"/path/to/cann/\",
     \"ASCEND_HOME_PATH\": \"/path/to/cann/\"
   }
