@@ -44,7 +44,7 @@ source scripts/models/qwen3-30B-A3B.sh
 - `--save`: 指定转换后 `torch_dist` 格式权重的保存路径。
 
 ```bash
-PYTHONPATH=/path/to/Megatron-LM:/path/to/Megatron-Bridge/src torchrun --nproc-per-node 8  tools/convert_hf_to_torch_dist.py \
+PYTHONPATH=/path/to/Megatron-LM:/path/to/Megatron-Bridge/src:$PYTHONPATH torchrun --nproc-per-node 8  tools/convert_hf_to_torch_dist.py \
     ${MODEL_ARGS[@]} \
     --hf-checkpoint /path/to/Qwen3-30B-A3B \
     --save /path/to/Qwen3-30B-A3B_torch_dist \

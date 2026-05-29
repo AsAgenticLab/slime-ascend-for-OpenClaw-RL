@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -x
 CANN_INSTALL_PATH=${CANN_INSTALL_PATH:-"/usr/local/Ascend"}
 NPU_DEVICE=${NPU_DEVICE:=A3}
 
