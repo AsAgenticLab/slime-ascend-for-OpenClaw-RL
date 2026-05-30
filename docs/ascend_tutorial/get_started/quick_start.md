@@ -89,7 +89,7 @@ docker run -it --rm \
 conda create -n slime-ascend python=3.11
 conda activate slime-ascend
 # 进入项目根目录
-git clone https://gitcode.com/Ascend/slime-ascend.git
+git clone -b v0.2.2 https://gitcode.com/Ascend/slime-ascend.git
 # CANN 安装路径，请根据实际情况修改
 export CANN_INSTALL_PATH=/usr/local/Ascend
 # NPU 设备类型：A3

@@ -17,7 +17,7 @@ git checkout . && git checkout sglang-slime
 cd ..
 
 echo "2. install torch & torch_npu & other basic packages"
-pip install torch==2.8.0 torch_npu==2.8.0.post2 torchvision==0.23.0 transformers==5.0.0
+pip install torch==2.8.0 torch_npu==2.8.0.post2 torchvision==0.23.0 transformers==5.0.0 setuptools==81.0.0
 
 echo "3.install sgl-kernel-npu from release whl"
 if [ "$NPU_DEVICE" = "A3" ]; then
