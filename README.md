@@ -4,9 +4,7 @@
 
 **主要更改：**
 
-\[2026.06.08.c1\] 增加适配 PRM 的参数：[commit 0d9d87ba](https://gitcode.com/Ascend-SACT/OpenClaw-RL-Ascend/commit/0d9d87bab256341f1b1b99810b1fc294ef069e31?ref=main)
-
-\[2026.06.08.c2\] 同步 GLM4.7 SFT loss mask 修复：[commit 32442879](https://gitcode.com/Ascend-SACT/OpenClaw-RL-Ascend/commit/32442879f28a667818b28ccb1a7fd73337a3a9e3?ref=main)
+[2026.06.30] 增加适配 PRM 的参数, 同步 GLM4.7 SFT loss mask 修复：[commit](https://gitcode.com/Ascend-SACT/slime-ascend-for-OpenClaw-RL/commit/e91fae31b50ef505a5e200efeee1fc6c160521ca?ref=v0.2.2-OpenClaw-RL)
 
 
 **原版 README 请见：**
