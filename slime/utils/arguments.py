@@ -1193,6 +1193,66 @@ def get_slime_extra_args_provider(add_custom_arguments=None):
                     "The function should have the signature `def convert_samples_to_train_data(args, samples) -> dict`."
                 ),
             )
+            parser.add_argument(
+                "--prm-enable",
+                action="store_true",
+                default=False,
+                help="Enable framework-hosted PRM servers and step-wise PRM scoring.",
+            )
+            parser.add_argument(
+                "--prm-num-gpus",
+                type=int,
+                default=0,
+                help="Total number of GPUs allocated for PRM inference servers.",
+            )
+            parser.add_argument(
+                "--prm-num-gpus-per-engine",
+                type=int,
+                default=1,
+                help="Number of GPUs per PRM engine (like TP size for PRM).",
+            )
+            parser.add_argument(
+                "--prm-m",
+                type=int,
+                default=4,
+                help="Number of independent PRM calls per step; the step score is the mean.",
+            )
+            parser.add_argument(
+                "--prm-router-ip",
+                type=str,
+                default=None,
+                help="IP address of the PRM router. Auto-assigned when not set.",
+            )
+            parser.add_argument(
+                "--prm-router-port",
+                type=int,
+                default=None,
+                help="Port of the PRM router. Auto-assigned when not set.",
+            )
+            parser.add_argument(
+                "--prm-model-path",
+                type=str,
+                default=None,
+                help="PRM model path for PRM engines; defaults to --hf-checkpoint when unset.",
+            )
+            parser.add_argument(
+                "--prm-step-coef",
+                type=float,
+                default=1.0,
+                help="Coefficient for PRM step-wise score when composing the final reward.",
+            )
+            parser.add_argument(
+                "--prm-temperature",
+                type=float,
+                default=1.0,
+                help="Sampling temperature for PRM judge generation.",
+            )
+            parser.add_argument(
+                "--prm-max-new-tokens",
+                type=int,
+                default=2048,
+                help="Max new tokens for each PRM judge generation call.",
+            )
             return parser
 
         def add_rollout_buffer_arguments(parser):
@@ -1224,8 +1284,8 @@ def get_slime_extra_args_provider(add_custom_arguments=None):
                 "--loss-mask-type",
                 type=str,
                 default="qwen",
-                choices=["qwen", "qwen3", "distill_qwen"],
-                help="Loss mask type",
+                choices=["qwen", "qwen3", "distill_qwen", "glm"],
+                help="Loss mask type. Use 'glm' for GLM-4.7 / ChatGLM-family models.",
             )
             parser.add_argument(
                 "--data-pad-size-multiplier",
@@ -1567,6 +1627,17 @@ def slime_validate_args(args):
 
     if args.eval_reward_key is None:
         args.eval_reward_key = args.reward_key
+    
+    if not args.prm_enable:
+        args.prm_num_gpus = 0
+    else:
+        assert args.prm_num_gpus > 0, "When --prm-enable is set, --prm-num-gpus must be > 0."
+        assert args.prm_num_gpus_per_engine > 0, "--prm-num-gpus-per-engine must be > 0."
+        assert args.prm_num_gpus % min(args.prm_num_gpus_per_engine, args.num_gpus_per_node) == 0, (
+            "prm_num_gpus must be divisible by min(prm_num_gpus_per_engine, num_gpus_per_node)."
+        )
+        if args.prm_model_path is None:
+            args.prm_model_path = args.hf_checkpoint
 
     if args.dump_details is not None:
         args.save_debug_rollout_data = f"{args.dump_details}/rollout_data/{{rollout_id}}.pt"

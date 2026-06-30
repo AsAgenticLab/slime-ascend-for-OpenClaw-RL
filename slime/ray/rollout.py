@@ -43,12 +43,15 @@ logger = logging.getLogger(__name__)
 class RolloutManager:
     """The class to run rollout and convert rollout data to training data."""
 
-    def __init__(self, args, pg):
+    def __init__(self, args, pg, prm_pg=None):
         configure_logger()
 
         self.args = args
         self.pg = pg
-        _start_router(args)
+        self.prm_pg = prm_pg
+        _start_router(args, router_ip_attr="sglang_router_ip", router_port_attr="sglang_router_port")
+        if self.args.prm_enable and self.args.prm_num_gpus > 0:
+            _start_router(args, router_ip_attr="prm_router_ip", router_port_attr="prm_router_port")
         # TODO make args immutable
         init_tracking(args, primary=False, router_addr=f"http://{args.sglang_router_ip}:{args.sglang_router_port}")
         init_http_client(args)
@@ -76,6 +79,14 @@ class RolloutManager:
             num_engines = args.rollout_num_gpus // num_gpu_per_engine
             self.all_rollout_engines = [None] * num_engines
         self.num_new_engines = init_rollout_engines(args, pg, self.all_rollout_engines)
+        if self.args.prm_enable and self.args.prm_num_gpus > 0:
+            prm_num_gpu_per_engine = min(args.prm_num_gpus_per_engine, args.num_gpus_per_node)
+            prm_num_engines = args.prm_num_gpus // prm_num_gpu_per_engine
+            self.all_prm_engines = [None] * prm_num_engines
+            self.num_new_prm_engines = init_prm_engines(args, prm_pg, self.all_prm_engines)
+        else:
+            self.all_prm_engines = []
+            self.num_new_prm_engines = 0
         self.nodes_per_engine = max(1, args.rollout_num_gpus_per_engine // args.num_gpus_per_node)
         device_name = "NPU" if is_npu() else "GPU"
         self.rollout_engine_lock = Lock.options(num_cpus=1, num_gpus=0, resources={device_name: 0}).remote()
@@ -120,9 +131,15 @@ class RolloutManager:
     def rollout_engines(self):
         # when doing multi-node serving, we will only send request to node-0 for each engine.
         return self.all_rollout_engines[:: self.nodes_per_engine]
-
-    def get_rollout_engines_and_lock(self):
-        return self.rollout_engines, self.rollout_engine_lock, self.num_new_engines
+    
+    def get_rollout_engines_and_lock(self, include_prm=False):
+        engines = list(self.rollout_engines)
+        num_new = self.num_new_engines
+        if include_prm:
+            prm_engines = [e for e in getattr(self, "all_prm_engines", []) if e is not None]
+            engines.extend(prm_engines)
+            num_new += getattr(self, "num_new_prm_engines", 0)
+        return engines, self.rollout_engine_lock, num_new
 
     def get_num_rollout_per_epoch(self):
         assert self.args.rollout_global_dataset
@@ -200,6 +217,8 @@ class RolloutManager:
     def clear_num_new_engines(self):
         # when fault tolerance is not enabled, we need to manually clear num_new_engines after update_weights
         self.num_new_engines = 0
+        if hasattr(self, "num_new_prm_engines"):
+            self.num_new_prm_engines = 0
 
     def health_monitoring_pause(self) -> None:
         if self._health_monitor is not None:
@@ -631,20 +650,141 @@ def _allocate_rollout_engine_addr_and_ports_normal(*, args, num_engines, rollout
     return addr_and_ports
 
 
-def _start_router(args):
-    """start sgl router and slime router"""
-    if args.sglang_router_ip is not None:
+def init_prm_engines(args, pg, all_prm_engines):
+    if not args.prm_enable or args.prm_num_gpus <= 0:
+        return 0
+    assert pg is not None, "PRM placement group is required when PRM is enabled."
+    
+    num_gpu_per_engine = min(args.prm_num_gpus_per_engine, args.num_gpus_per_node)
+    num_engines = args.prm_num_gpus // num_gpu_per_engine
+    assert len(all_prm_engines) == num_engines
+    
+    pg, reordered_bundle_indices, reordered_gpu_ids = pg
+    RolloutRayActor = ray.remote(SGLangEngine)
+    device_name = "NPU" if is_npu() else "GPU"
+    
+    prm_engines = []
+    for i in range(num_engines):
+        if all_prm_engines[i] is not None:
+            continue
+        
+        num_gpus = 0.2
+        num_cpus = num_gpus
+        base_gpu_id = int(reordered_gpu_ids[i * num_gpu_per_engine])
+        scheduling_strategy = PlacementGroupSchedulingStrategy(
+            placement_group=pg,
+            placement_group_capture_child_tasks=True,
+            placement_group_bundle_index=reordered_bundle_indices[i * num_gpu_per_engine],
+            )
+        
+        env_vars = {name: "1" for name in NOSET_VISIBLE_DEVICES_ENV_VARS_LIST} | {
+            "SGL_JIT_DEEPGEMM_PRECOMPILE": "false",
+            "SGLANG_JIT_DEEPGEMM_PRECOMPILE": "false",
+            "SGL_DISABLE_TP_MEMORY_INBALANCE_CHECK": "true",
+            "SGLANG_DISABLE_TP_MEMORY_INBALANCE_CHECK": "true",
+            "SGLANG_MEMORY_SAVER_CUDA_GRAPH": "true",
+            "SGLANG_BATCH_INVARIANT_OPS_ENABLE_MM_FALLBACK_VARIANT": "true",
+            "SGLANG_ENABLE_HEALTH_ENDPOINT_GENERATION": "false",
+            "SGLANG_ENABLE_STRICT_MEM_CHECK_DURING_IDLE": "false",
+            }
+        
+        prm_engine = RolloutRayActor.options(
+            num_cpus=num_cpus,
+            scheduling_strategy=scheduling_strategy,
+            runtime_env={"env_vars": env_vars},
+            resources={device_name: num_gpus},
+        ).remote(args, rank=i, worker_type="regular", base_gpu_id=base_gpu_id, engine_role="prm")
+        
+        prm_engines.append((i, prm_engine))
+        all_prm_engines[i] = prm_engine
+        
+    num_new_engines = len(prm_engines)
+    if num_new_engines == 0:
+        return num_new_engines
+    
+    addr_and_ports = _allocate_prm_engine_addr_and_ports(
+        args=args,
+        num_engines=num_engines,
+        prm_engines=prm_engines,
+        )
+    init_handles = [engine.init.remote(**(addr_and_ports[rank])) for rank, engine in prm_engines]
+    ray.get(init_handles)
+    return num_new_engines
+ 	 
+ 	 
+def _allocate_prm_engine_addr_and_ports(*, args, num_engines, prm_engines):
+    # mirror rollout allocator but use PRM engine parallel settings.
+    num_engines_per_node = max(1, min(args.num_gpus_per_node, args.prm_num_gpus) // args.prm_num_gpus_per_engine)
+    addr_and_ports = [{} for _ in range(num_engines)]
+    
+    visited_nodes = set()
+    for rank, engine in prm_engines:
+        if rank // num_engines_per_node in visited_nodes:
+            continue
+        visited_nodes.add(rank // num_engines_per_node)
+        num_engines_on_this_node = num_engines_per_node - (rank % num_engines_per_node)
+
+        def get_addr_and_ports(engine):
+            start_port = 25000
+
+            def port(consecutive=1):
+                nonlocal start_port
+                _, port = ray.get(
+                    engine._get_current_node_ip_and_free_port.remote(
+                        start_port=start_port,
+                        consecutive=consecutive,
+                    )
+                )
+                start_port = port + consecutive
+                return port
+
+            def addr():
+                addr, _ = ray.get(engine._get_current_node_ip_and_free_port.remote())
+                return addr
+
+            return addr, port
+
+        get_addr, get_port = get_addr_and_ports(engine)
+        for i in range(num_engines_on_this_node):
+            current_rank = rank + i
+            addr_and_ports[current_rank]["host"] = get_addr()
+            addr_and_ports[current_rank]["port"] = get_port()
+            addr_and_ports[current_rank]["nccl_port"] = get_port()
+
+        if args.prm_num_gpus_per_engine > args.num_gpus_per_node:
+            num_node_per_engine = args.prm_num_gpus_per_engine // args.num_gpus_per_node
+            if rank % num_node_per_engine == 0:
+                dist_init_addr = f"{get_addr()}:{get_port(30 + args.sglang_dp_size)}"
+                for i in range(num_node_per_engine):
+                    addr_and_ports[rank + i]["dist_init_addr"] = dist_init_addr
+        else:
+            for i in range(num_engines_on_this_node):
+                addr_and_ports[rank + i]["dist_init_addr"] = f"{get_addr()}:{get_port(30 + args.sglang_dp_size)}"
+
+    for i, _ in prm_engines:
+        for key in ["port", "nccl_port", "dist_init_addr"]:
+            assert key in addr_and_ports[i], f"PRM Engine {i} {key} is not set."
+        logger.info(f"Ports for PRM engine {i}: {addr_and_ports[i]}")
+    return addr_and_ports
+
+
+def _start_router(args, router_ip_attr: str = "sglang_router_ip", router_port_attr: str = "sglang_router_port"):
+    """Start a router for rollout or PRM engines."""
+    if getattr(args, router_ip_attr, None) is not None:
         return
 
-    args.sglang_router_ip = _wrap_ipv6(get_host_info()[1])
-    if args.sglang_router_port is None:
-        args.sglang_router_port = find_available_port(random.randint(3000, 4000))
+    setattr(args, router_ip_attr, _wrap_ipv6(get_host_info()[1]))
+    if getattr(args, router_port_attr, None) is None:
+        setattr(args, router_port_attr, find_available_port(random.randint(3000, 4000)))
 
     if args.use_slime_router:
-        assert args.prefill_num_servers is None, "slime router does not support prefill_num_servers."
+        if router_ip_attr == "sglang_router_ip":
+            assert args.prefill_num_servers is None, "slime router does not support prefill_num_servers."
         from slime.router.router import run_router
 
         router_args = args
+        router_args.sglang_router_ip = getattr(args, router_ip_attr)
+        router_args.sglang_router_port = getattr(args, router_port_attr)
 
     else:
         from sglang_router.launch_router import RouterArgs
@@ -652,13 +792,13 @@ def _start_router(args):
         from slime.utils.http_utils import run_router
 
         router_args = RouterArgs.from_cli_args(args, use_router_prefix=True)
-        router_args.host = args.sglang_router_ip
-        router_args.port = args.sglang_router_port
+        router_args.host = getattr(args, router_ip_attr)
+        router_args.port = getattr(args, router_port_attr)
         router_args.prometheus_port = find_available_port(random.randint(4000, 5000))
         router_args.log_level = "warn"
         router_args.request_timeout_secs = args.sglang_router_request_timeout_secs
 
-        if args.prefill_num_servers is not None:
+        if router_ip_attr == "sglang_router_ip" and args.prefill_num_servers is not None:
             router_args.pd_disaggregation = True
 
         logger.info(f"Launch router with args: {router_args}")
@@ -672,7 +812,7 @@ def _start_router(args):
     # Wait 3 seconds
     time.sleep(3)
     assert process.is_alive()
-    logger.info(f"Router launched at {args.sglang_router_ip}:{args.sglang_router_port}")
+    logger.info(f"Router launched at {getattr(args, router_ip_attr)}:{getattr(args, router_port_attr)}")
 
 
 def _log_eval_rollout_data(rollout_id, args, data, extra_metrics: dict[str, Any] | None = None):

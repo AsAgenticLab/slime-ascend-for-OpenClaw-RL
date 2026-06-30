@@ -86,6 +86,7 @@ def create_placement_groups(args):
     """Create placement groups for actor and rollout engines."""
 
     num_gpus = 0
+    prm_offset = None
     if args.debug_train_only:
         num_gpus = args.actor_num_nodes * args.actor_num_gpus_per_node
         rollout_offset = 0
@@ -108,12 +109,20 @@ def create_placement_groups(args):
             num_gpus += args.critic_num_nodes * args.critic_num_gpus_per_node
             critic_offset = args.actor_num_nodes * args.actor_num_gpus_per_node
             rollout_offset += args.critic_num_nodes * args.critic_num_gpus_per_node
+        if args.prm_enable and args.prm_num_gpus > 0:
+            prm_offset = rollout_offset + args.rollout_num_gpus
+            num_gpus += args.prm_num_gpus
 
     logger.info(f"Creating placement group with {num_gpus} GPUs...")
     pg, actor_pg_reordered_bundle_indices, actor_pg_reordered_gpu_ids = _create_placement_group(num_gpus)
 
     rollout_pg_reordered_bundle_indices = actor_pg_reordered_bundle_indices[rollout_offset:]
     rollout_pg_reordered_gpu_ids = actor_pg_reordered_gpu_ids[rollout_offset:]
+    if prm_offset is not None:
+        prm_pg_reordered_bundle_indices = actor_pg_reordered_bundle_indices[prm_offset : prm_offset + args.prm_num_gpus]
+        prm_pg_reordered_gpu_ids = actor_pg_reordered_gpu_ids[prm_offset : prm_offset + args.prm_num_gpus]
+        rollout_pg_reordered_bundle_indices = actor_pg_reordered_bundle_indices[rollout_offset:prm_offset]
+        rollout_pg_reordered_gpu_ids = actor_pg_reordered_gpu_ids[rollout_offset:prm_offset]
     if args.use_critic:
         critic_pg_reordered_bundle_indices = actor_pg_reordered_bundle_indices[critic_offset:]
         critic_pg_reordered_gpu_ids = actor_pg_reordered_gpu_ids[critic_offset:]
@@ -122,6 +131,7 @@ def create_placement_groups(args):
         "actor": (pg, actor_pg_reordered_bundle_indices, actor_pg_reordered_gpu_ids),
         "critic": (pg, critic_pg_reordered_bundle_indices, critic_pg_reordered_gpu_ids) if args.use_critic else None,
         "rollout": (pg, rollout_pg_reordered_bundle_indices, rollout_pg_reordered_gpu_ids),
+        "prm": (pg, prm_pg_reordered_bundle_indices, prm_pg_reordered_gpu_ids) if prm_offset is not None else None,
     }
 
 
@@ -172,13 +182,13 @@ def create_training_models(args, pgs, rollout_manager):
     return actor_model, critic_model
 
 
-def create_rollout_manager(args, pg):
+def create_rollout_manager(args, pg, prm_pg=None):
     device_name = "NPU" if is_npu() else "GPU"
     rollout_manager = RolloutManager.options(
         num_cpus=1,
         num_gpus=0,
         resources={device_name: 0}
-    ).remote(args, pg)
+    ).remote(args, pg, prm_pg)
 
     # calculate num_rollout from num_epoch
     num_rollout_per_epoch = None

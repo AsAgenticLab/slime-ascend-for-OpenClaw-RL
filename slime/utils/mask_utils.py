@@ -9,8 +9,15 @@ def get_response_lengths(loss_masks: list[list[int]]) -> list[int]:
 class MultiTurnLossMaskGenerator:
     def __init__(self, tokenizer: AutoTokenizer, tokenizer_type: str = "qwen"):
         self.tokenizer = tokenizer
-        self.system_message_length, self.gen_token_length = self.get_system_message_length()
         self.tokenizer_type = tokenizer_type
+        # system_message_length / gen_token_length are only used by qwen / qwen3 paths.
+        # Skip the probe for tokenizer types that don't need it (e.g. glm) because
+        # GLM-family tokenizers may return a string from apply_chat_template on single
+        # messages, causing the sublist-index probe to fail.
+        if tokenizer_type in ("qwen", "qwen3"):
+            self.system_message_length, self.gen_token_length = self.get_system_message_length()
+        else:
+            self.system_message_length, self.gen_token_length = 0, 0
 
     def get_response_lengths(self, loss_masks: list[list[int]]) -> list[int]:
         return get_response_lengths(loss_masks)
@@ -125,6 +132,59 @@ class MultiTurnLossMaskGenerator:
         if messages[-1].get("step_loss_mask", 1) != 1:
             loss_mask = [0] * len(token_ids)
         return token_ids, loss_mask
+    
+    def gen_multi_turn_loss_mask_glm(
+        self, messages: list[dict], tools: list[dict] = None
+    ) -> tuple[list[int], list[int]]:
+        """Multi-turn loss mask for GLM-4.7 (and other ChatGLM-family) tokenizers.
+
+        GLM tokenizers may return a str instead of list[int] when
+        apply_chat_template is called on a single message with tokenize=True.
+        This implementation avoids that by always using tokenize=False and then
+        encoding the resulting string explicitly.
+
+        Boundary detection: for each assistant turn we compare the token length of
+        the conversation prefix (with generation prompt) against the prefix that
+        already includes the assistant response, giving us the exact token span to
+        set loss_mask=1.
+        """
+        def _encode(text: str) -> list[int]:
+            return self.tokenizer.encode(text, add_special_tokens=False)
+
+        # Tokenize the full conversation once to get the ground-truth token IDs.
+        full_text = self.tokenizer.apply_chat_template(messages, tokenize=False, tools=tools)
+        full_ids = _encode(full_text)
+        loss_mask = [0] * len(full_ids)
+
+        for i, message in enumerate(messages):
+            if message["role"] != "assistant":
+                continue
+
+            # Tokens before this assistant turn (generation prompt appended).
+            prefix_text = self.tokenizer.apply_chat_template(
+                messages[:i],
+                tokenize=False,
+                add_generation_prompt=True,
+                tools=tools,
+            )
+            # Tokens up to and including this assistant turn (no generation prompt).
+            upto_text = self.tokenizer.apply_chat_template(
+                messages[: i + 1],
+                tokenize=False,
+                tools=tools,
+            )
+
+            prefix_ids = _encode(prefix_text)
+            upto_ids = _encode(upto_text)
+
+            start = len(prefix_ids)
+            end = len(upto_ids)
+
+            if message.get("step_loss_mask", 1) == 1:
+                for j in range(start, min(end, len(loss_mask))):
+                    loss_mask[j] = 1
+
+        return full_ids, loss_mask
 
     def get_loss_mask(self, messages: list[dict], tools: list[dict] = None) -> tuple[list[int], list[int]]:
         if self.tokenizer_type == "qwen":
@@ -136,6 +196,8 @@ class MultiTurnLossMaskGenerator:
             return self.gen_multi_turn_loss_mask_qwen3(messages, tools)
         elif self.tokenizer_type == "distill_qwen":
             return self.gen_multi_turn_loss_mask_distill_qwen(messages, tools)
+        elif self.tokenizer_type == "glm":
+            return self.gen_multi_turn_loss_mask_glm(messages, tools)
         else:
             raise ValueError(f"Unsupported tokenizer type: {self.tokenizer_type}")
 

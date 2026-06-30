@@ -111,15 +111,20 @@ def _wait_server_healthy(base_url, api_key, is_process_alive):
 
 
 class SGLangEngine(RayActor):
-    def __init__(self, args, rank: int, worker_type: str = "regular", base_gpu_id: int | None = None):
+    def __init__(self, args, rank: int, worker_type: str = "regular", base_gpu_id: int | None = None, engine_role: str = "rollout"):
         self.args = args
         self.rank = rank
         self.worker_type = worker_type
         self.base_gpu_id = base_gpu_id
+        self.engine_role = engine_role
 
     def init(self, dist_init_addr, port, nccl_port, host=None, disaggregation_bootstrap_port=None):
-        self.router_ip = self.args.sglang_router_ip
-        self.router_port = self.args.sglang_router_port
+        if self.engine_role == "prm":
+            self.router_ip = self.args.prm_router_ip
+            self.router_port = self.args.prm_router_port
+        else:
+            self.router_ip = self.args.sglang_router_ip
+            self.router_port = self.args.sglang_router_port
 
         host = host or get_host_info()[1]
 
@@ -147,6 +152,7 @@ class SGLangEngine(RayActor):
             self.worker_type,
             disaggregation_bootstrap_port,
             base_gpu_id=self.base_gpu_id,
+            engine_role=self.engine_role,
         )
 
         self.node_rank = server_args_dict["node_rank"]
@@ -480,17 +486,21 @@ def _compute_server_args(
     worker_type: str = "regular",
     disaggregation_bootstrap_port: int | None = None,
     base_gpu_id: int | None = None,
+    engine_role: str = "rollout",
 ):
-    nnodes = max(1, args.rollout_num_gpus_per_engine // args.num_gpus_per_node)
+    is_prm = engine_role == "prm"
+    gpus_per_engine = args.prm_num_gpus_per_engine if is_prm else args.rollout_num_gpus_per_engine
+    model_path = args.prm_model_path if is_prm else (getattr(args, "rollout_model_path", None) or args.hf_checkpoint)
+    nnodes = max(1, gpus_per_engine // args.num_gpus_per_node)
     node_rank = rank % nnodes
     base = base_gpu_id if base_gpu_id is not None else get_base_gpu_id(args, rank)
     base = _to_local_gpu_id(base)
     kwargs = {
-        "model_path": args.hf_checkpoint,
+        "model_path": model_path,
         "trust_remote_code": True,
         "random_seed": args.seed + rank,
         # memory
-        "enable_memory_saver": args.offload_rollout,
+        "enable_memory_saver": args.offload_rollout if not is_prm else False,
         # distributed
         "host": host,
         "port": port,
@@ -501,7 +511,7 @@ def _compute_server_args(
         "gpu_id_step": 1,
         "base_gpu_id": base,
         # parallel
-        "tp_size": args.rollout_num_gpus_per_engine,
+        "tp_size": gpus_per_engine // args.sglang_pp_size,
         "dp_size": args.sglang_dp_size,
         "pp_size": args.sglang_pp_size,
         "ep_size": args.sglang_ep_size,
@@ -511,14 +521,14 @@ def _compute_server_args(
         "enable_draft_weights_cpu_backup": True,
     }
 
-    if worker_type == "prefill":
+    if worker_type == "prefill" and not is_prm:
         kwargs["disaggregation_mode"] = "prefill"
         kwargs["load_balance_method"] = "round_robin"
         assert (
             disaggregation_bootstrap_port is not None
         ), "disaggregation_bootstrap_port must be set for prefill worker"
         kwargs["disaggregation_bootstrap_port"] = disaggregation_bootstrap_port
-    elif worker_type == "decode":
+    elif worker_type == "decode" and not is_prm:
         kwargs["disaggregation_mode"] = "decode"
         kwargs["prefill_round_robin_balance"] = True
 
