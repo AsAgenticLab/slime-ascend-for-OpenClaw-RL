@@ -370,6 +370,7 @@ def train_one_step(
                 "returns",
                 "rollout_log_probs",
                 "max_seq_lens",
+                "teacher_log_probs",
             ],
             args.data_pad_size_multiplier,
             args.qkv_format,
